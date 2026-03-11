@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF Learning & Development — Course Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sf-navy: #0a1628;
+    --sf-blue: #1a3a6b;
+    --sf-accent: #3b82f6;
+    --sf-highlight: #60a5fa;
+    --sf-gold: #f59e0b;
+    --sf-surface: #111d33;
+    --sf-card: #16243e;
+    --sf-border: rgba(59,130,246,0.18);
+    --sf-text: #e2eaf6;
+    --sf-muted: #7a90b4;
+    --radius: 14px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--sf-navy);
+    color: var(--sf-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background mesh */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(59,130,246,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245,158,11,0.07) 0%, transparent 55%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--sf-navy);
+    gap: 0;
+  }
+  .auth-card {
+    background: var(--sf-card);
+    border: 1px solid var(--sf-border);
+    border-radius: 20px;
+    padding: 48px 52px;
+    display: flex; flex-direction: column; align-items: center; gap: 28px;
+    max-width: 420px; width: 90%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    animation: fadeUp .5s ease both;
+  }
+  .auth-logo { display: flex; align-items: center; gap: 12px; }
+  .auth-logo .logo-badge {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--sf-accent), var(--sf-blue));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: #fff;
+  }
+  .auth-logo .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: var(--sf-text); }
+  .auth-logo .logo-text span { color: var(--sf-accent); }
+  .auth-divider { width: 100%; height: 1px; background: var(--sf-border); }
+  .auth-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; text-align: center; line-height: 1.3; }
+  .auth-sub { color: var(--sf-muted); font-size: 14px; text-align: center; line-height: 1.6; }
+  #google-signin-btn {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; color: #1a1a1a;
+    border: none; border-radius: 10px;
+    padding: 13px 28px; font-size: 15px; font-weight: 500;
+    cursor: pointer; width: 100%; justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    transition: box-shadow .2s, transform .15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  #google-signin-btn:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.4); transform: translateY(-1px); }
+  #google-signin-btn img { width: 20px; height: 20px; }
+  #auth-error { color: #f87171; font-size: 13px; text-align: center; display: none; }
+
+  /* ── TOP NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px;
+    height: 68px;
+    background: rgba(10,22,40,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--sf-border);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-badge {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--sf-accent), var(--sf-blue));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: #fff;
+  }
+  .nav-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; }
+  .nav-title span { color: var(--sf-accent); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-admin-link {
+    font-size: 13px; color: var(--sf-muted); text-decoration: none;
+    padding: 6px 14px; border-radius: 7px; border: 1px solid var(--sf-border);
+    transition: all .2s; display: none;
+  }
+  .nav-admin-link:hover { color: var(--sf-accent); border-color: var(--sf-accent); }
+  #user-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--sf-surface); border: 1px solid var(--sf-border);
+    border-radius: 50px; padding: 5px 14px 5px 6px;
+  }
+  #user-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--sf-accent); object-fit: cover;
+  }
+  #user-name { font-size: 13px; font-weight: 500; color: var(--sf-text); }
+  #signout-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--sf-muted); font-size: 13px; font-family: 'DM Sans', sans-serif;
+    padding: 4px 8px; border-radius: 6px; transition: color .2s;
+  }
+  #signout-btn:hover { color: #f87171; }
+
+  /* ── MAIN ── */
+  main { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 56px 32px 80px; }
+  .hero-section { margin-bottom: 52px; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 50px; padding: 5px 14px; font-size: 12px; font-weight: 500;
+    color: var(--sf-highlight); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px;
+  }
+  .hero-eyebrow span { width: 6px; height: 6px; border-radius: 50%; background: var(--sf-accent); }
+  .hero-title { font-family: 'Syne', sans-serif; font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; margin-bottom: 12px; }
+  .hero-title em { font-style: normal; color: var(--sf-accent); }
+  .hero-sub { color: var(--sf-muted); font-size: 16px; max-width: 540px; line-height: 1.65; }
+
+  /* ── LOADING ── */
+  #loading-courses {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    padding: 80px 0; color: var(--sf-muted); font-size: 14px;
+  }
+  .spinner {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 3px solid var(--sf-border); border-top-color: var(--sf-accent);
+    animation: spin .8s linear infinite;
+  }
+
+  /* ── COURSE GRID ── */
+  #courses-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;
+  }
+  .course-card {
+    background: var(--sf-card);
+    border: 1px solid var(--sf-border);
+    border-radius: var(--radius); overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    animation: fadeUp .4s ease both;
+  }
+  .course-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); border-color: rgba(59,130,246,0.4); }
+  .card-banner {
+    height: 10px;
+    background: linear-gradient(90deg, var(--sf-accent), var(--sf-highlight));
+  }
+  .card-body { padding: 24px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .card-meta { display: flex; align-items: center; justify-content: space-between; }
+  .card-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--sf-accent); background: rgba(59,130,246,0.1);
+    padding: 4px 10px; border-radius: 50px;
+  }
+  .card-status-badge {
+    font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 50px;
+  }
+  .badge-nominated { background: rgba(52,211,153,0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
+  .badge-not-nominated { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+  .badge-checking { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; line-height: 1.3; }
+  .card-desc { color: var(--sf-muted); font-size: 14px; line-height: 1.6; flex: 1; }
+  .card-footer { padding: 0 24px 22px; display: flex; flex-direction: column; gap: 10px; }
+  .card-info { display: flex; gap: 20px; }
+  .card-info-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--sf-muted); }
+  .card-info-item svg { opacity: .7; }
+  .card-action {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 11px; border-radius: 9px;
+    font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; text-decoration: none; border: none;
+    transition: all .2s;
+  }
+  .btn-enter {
+    background: var(--sf-accent); color: #fff;
+  }
+  .btn-enter:hover { background: #2563eb; }
+  .btn-locked {
+    background: rgba(255,255,255,0.04); color: var(--sf-muted);
+    border: 1px solid var(--sf-border); cursor: not-allowed;
+  }
+  .btn-loading { background: var(--sf-surface); color: var(--sf-muted); cursor: wait; }
+
+  /* ── NOT NOMINATED TOOLTIP ── */
+  .not-nominated-notice {
+    display: none; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #fca5a5; line-height: 1.5;
+  }
+  .course-card.status-not-nominated .not-nominated-notice { display: block; }
+
+  /* ── EMPTY STATE ── */
+  #empty-state {
+    display: none; text-align: center; padding: 80px 0; color: var(--sf-muted);
+  }
+  #empty-state svg { opacity: .3; margin-bottom: 16px; }
+  #empty-state h3 { font-family: 'Syne', sans-serif; color: var(--sf-text); margin-bottom: 8px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--sf-card); border: 1px solid var(--sf-border);
+    border-radius: 10px; padding: 12px 20px; font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 0; pointer-events: none; transition: all .3s; z-index: 200; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 20px; }
+    main { padding: 36px 20px 60px; }
+    #courses-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-badge">SF</div>
+      <div class="logo-text"><span>SF</span> Learning &amp; Development</div>
+    </div>
+    <div class="auth-divider"></div>
+    <div class="auth-title">Welcome to the<br>SF Learning Hub</div>
+    <div class="auth-sub">Sign in with your SourceFuse Google account to access your assigned certification courses.</div>
+    <button id="google-signin-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Continue with Google
+    </button>
+    <div id="auth-error">Sign-in failed. Please use your SourceFuse Google account.</div>
+  </div>
+</div>
+
+<!-- APP (hidden until auth) -->
+<div id="app" style="display:none">
+  <nav>
+    <a href="#" class="nav-brand">
+      <div class="nav-badge">SF</div>
+      <div class="nav-title"><span>SF</span> Learning &amp; Development</div>
+    </a>
+    <div class="nav-right">
+      <a href="sf-courses-admin.html" class="nav-admin-link" id="admin-nav-link">⚙ Admin</a>
+      <div id="user-chip">
+        <img id="user-avatar" src="" alt="avatar">
+        <span id="user-name"></span>
+      </div>
+      <button id="signout-btn">Sign out</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero-section">
+      <div class="hero-eyebrow"><span></span>Certification Courses</div>
+      <h1 class="hero-title">Your Learning<br><em>Journey Starts Here</em></h1>
+      <p class="hero-sub">Complete your nominated courses to earn your SourceFuse internal certifications. Reach out to your manager or the L&amp;D team for nominations.</p>
+    </div>
+
+    <div id="loading-courses">
+      <div class="spinner"></div>
+      Loading courses…
+    </div>
+
+    <div id="courses-grid"></div>
+
+    <div id="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      <h3>No courses available yet</h3>
+      <p>Check back soon — new courses are being added.</p>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, doc, getDoc }
+  from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-8fatW5D7uR69rcuGFPH54IFqrz0PhU0",
+  authDomain: "sfcertification-grafana.firebaseapp.com",
+  projectId: "sfcertification-grafana",
+  appId: "1:227322696511:web:12e7ced7dd3d45fa06798a"
+};
+
+const ADMIN_EMAILS = ['jv.ravichandran@sourcefuse.com', 'noushin.khan@sourcefuse.com'];
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── Sign-in
+document.getElementById('google-signin-btn').addEventListener('click', async () => {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ hd: 'sourcefuse.com' });
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    document.getElementById('auth-error').style.display = 'block';
+  }
+});
+
+// ── Sign-out
+document.getElementById('signout-btn').addEventListener('click', () => signOut(auth));
+
+// ── Auth state
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    // Set user info
+    document.getElementById('user-name').textContent = user.displayName || user.email;
+    if (user.photoURL) document.getElementById('user-avatar').src = user.photoURL;
+    else document.getElementById('user-avatar').style.background = '#3b82f6';
+
+    // Show admin link if admin
+    if (ADMIN_EMAILS.includes(user.email)) {
+      document.getElementById('admin-nav-link').style.display = 'flex';
+    }
+
+    await loadCourses(user);
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ── Load courses
+async function loadCourses(user) {
+  const grid = document.getElementById('courses-grid');
+  const loading = document.getElementById('loading-courses');
+  const empty = document.getElementById('empty-state');
+
+  grid.innerHTML = '';
+  loading.style.display = 'flex';
+  empty.style.display = 'none';
+
+  try {
+    const snapshot = await getDocs(collection(db, 'courses'));
+    const courses = [];
+    snapshot.forEach(d => courses.push({ id: d.id, ...d.data() }));
+
+    // Sort by order field if present
+    courses.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    loading.style.display = 'none';
+
+    if (courses.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+
+    for (const course of courses) {
+      const card = await buildCourseCard(course, user);
+      grid.appendChild(card);
+    }
+  } catch (e) {
+    loading.style.display = 'none';
+    showToast('Error loading courses. Please refresh.');
+    console.error(e);
+  }
+}
+
+// ── Build card
+async function buildCourseCard(course, user) {
+  const isAdmin = ADMIN_EMAILS.includes(user.email);
+
+  // Check nomination
+  let nominated = isAdmin; // admins always have access
+  if (!isAdmin) {
+    try {
+      const nomRef = doc(db, 'courses', course.id, 'nominations', user.email);
+      const nomSnap = await getDoc(nomRef);
+      nominated = nomSnap.exists() && nomSnap.data().nominated === true;
+    } catch (e) { nominated = false; }
+  }
+
+  const card = document.createElement('div');
+  card.className = `course-card${nominated ? '' : ' status-not-nominated'}`;
+
+  const accentColor = course.accentColor || '#3b82f6';
+  const icon = course.icon || '📘';
+
+  card.innerHTML = `
+    <div class="card-banner" style="background: linear-gradient(90deg, ${accentColor}, ${lighten(accentColor)})"></div>
+    <div class="card-body">
+      <div class="card-meta">
+        <span class="card-tag">${course.category || 'Certification'}</span>
+        <span class="card-status-badge ${nominated ? 'badge-nominated' : 'badge-not-nominated'}">
+          ${nominated ? '✓ Nominated' : '✗ Not Nominated'}
+        </span>
+      </div>
+      <div style="font-size:28px;line-height:1">${icon}</div>
+      <div class="card-title">${escHtml(course.title)}</div>
+      <div class="card-desc">${escHtml(course.description || '')}</div>
+      <div class="not-nominated-notice">
+        You are not nominated for this course. Please contact your manager or the SF L&amp;D team.
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="card-info">
+        ${course.duration ? `<div class="card-info-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          ${escHtml(course.duration)}
+        </div>` : ''}
+        ${course.level ? `<div class="card-info-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V4M22 4h.01"/></svg>
+          ${escHtml(course.level)}
+        </div>` : ''}
+      </div>
+      ${nominated
+        ? `<a href="${escHtml(course.url || '#')}" class="card-action btn-enter">Enter Course →</a>`
+        : `<button class="card-action btn-locked" disabled>🔒 Access Restricted</button>`}
+    </div>
+  `;
+
+  return card;
+}
+
+function lighten(hex) {
+  // Simple hex brightener for gradient
+  try {
+    let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    r = Math.min(255, r + 60); g = Math.min(255, g + 60); b = Math.min(255, b + 60);
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  } catch { return hex; }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
